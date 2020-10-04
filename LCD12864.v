@@ -12,11 +12,8 @@ input clk;
  reg [5:0] current,next; 
  reg clkr; 
  reg [1:0] cnt; 
- 
- reg [7:0] mem0 [0:15];
- reg [7:0] mem1 [0:15];
- reg [7:0] mem2 [0:15];
- reg [7:0] mem3 [0:15];
+
+ reg [7:0] mem [0:63];
  reg [3:0] mem_index;
  
  
@@ -28,19 +25,25 @@ input clk;
  parameter  set5=6'h5;
  parameter  set6=6'h6;  
 
- parameter  dat0=6'h7; 
- parameter  dat1=6'h8; 
- parameter  dat2=6'h9; 
- parameter  dat3=6'hA;    
+ parameter  row0=6'h7; 
+ parameter  row1=6'h8; 
+ parameter  row2=6'h9; 
+ parameter  row3=6'hA;    
   
  parameter  nul=6'hF1; 
  
+ parameter line0 = 8'h80';
+ parameter line1 = 8'h90';
+ parameter line2 = 8'h88';
+ parameter line3 = 8'h98';
+ 
  task write_row;
-	//input [7:0] mem[0:15];
+	input [2:0] mem_row;
 	input [5:0] next_state;
+
 	begin
 		rs <= 1;
-		dat <= mem0[mem_index];
+		dat <= mem[mem_row*16 + mem_index];
 		mem_index <= mem_index + 1;
 		if(mem_index == 15) begin
 			next <= next_state;
@@ -49,13 +52,10 @@ input clk;
  endtask
  
  initial begin;
-	$readmemb("ram0.txt", mem0);
-	$readmemb("ram1.txt", mem1);
-	$readmemb("ram2.txt", mem2);
-	$readmemb("ram3.txt", mem3);
+	$readmemb("ram.txt", mem);
  end
  
-always @(posedge clk)         //da de shi zhong pinlv 
+always @(posedge clk)        
  begin 
   counter=counter+1; 
   if(counter==16'h000f)  
@@ -65,48 +65,32 @@ always @(posedge clkr)
 begin 
  current=next; 
   case(current) 
-    set0:   begin  rs<=0; dat<=8'h30; next<=set1; end 
-    set1:   begin  rs<=0; dat<=8'h0c; next<=set2; end 
-    set2:   begin  rs<=0; dat<=8'h6; next<=set3; end 
-    set3:   begin  rs<=0; dat<=8'h1; next<=dat0; mem_index <= 0; end 
+    set0:   begin  rs<=0; dat<=8'h30; next<=set1; end //00110000 - set 8-bit interface, basic instruction set
+    set1:   begin  rs<=0; dat<=8'h0c; next<=set2; end //00001100 - display on, cursor off, blink off
+    set2:   begin  rs<=0; dat<=8'h6; next<=set3; end  //00000110 - set cursor position and display shift?
+    set3:   begin  rs<=0; dat<=8'h1; next<=row0; mem_index <= 0; end  //CLEAR
 	 
-	 dat0: begin
-		rs <= 1;
-		dat <= mem0[mem_index];
-		mem_index <= mem_index + 1;
-		if(mem_index == 15)
-			next <= set4;
-	end
+	 row0: begin
+		write_row(0, set4);
+	 end
 
-    set4:   begin  rs<=0; dat<=8'h90; next<=dat1; mem_index <= 0; end 
+    set4:   begin  rs<=0; dat<=line1; next<=row1; mem_index <= 0; end 
 	 
-	 dat1: begin
-		rs <= 1;
-		dat <= mem1[mem_index];
-		mem_index <= mem_index + 1;
-		if(mem_index == 15)
-			next <= set5;
+	 row1: begin
+		write_row(1, set5);
 	 end
 
 
-    set5:   begin  rs<=0; dat<=8'h88; next<=dat2; mem_index <= 0; end //ĎÔĘžľÚČýĐĐ
+    set5:   begin  rs<=0; dat<=line2; next<=row2; mem_index <= 0; end 
 	 
-	 dat2: begin
-		rs <= 1;
-		dat <= mem2[mem_index];
-		mem_index <= mem_index + 1;
-		if(mem_index == 15)
-			next <= set6;
+	 row2: begin
+		write_row(2, set6);
 	 end
 
-    set6:   begin  rs<=0; dat<=8'h98; next<=dat3; mem_index <= 0; end //ĎÔĘžľÚËÄĐĐ
+    set6:   begin  rs<=0; dat<=line3; next<=row3; mem_index <= 0; end
 	 
-	 dat3: begin
-		rs <= 1;
-		dat <= mem3[mem_index];
-		mem_index <= mem_index + 1;
-		if(mem_index == 15)
-			next <= nul;
+	 row3: begin
+		write_row(3, nul);
 	 end
 
 	 //reset?

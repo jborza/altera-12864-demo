@@ -12,6 +12,16 @@ input clk;
  reg [5:0] current,next; 
  reg clkr; 
  reg [1:0] cnt; 
+ 
+ reg [7:0] mem [0:15];
+ reg [7:0] mem2 [0:15];
+ reg [7:0] mem3 [0:15];
+ reg [7:0] mem4 [0:15];
+ reg [3:0] mem_index;
+ 
+
+ 
+ 
  parameter  set0=6'h0; 
  parameter  set1=6'h1; 
  parameter  set2=6'h2; 
@@ -50,6 +60,75 @@ input clk;
  parameter  dat26=6'h22;     
   
  parameter  nul=6'hF1; 
+ 
+ initial begin;
+	 mem[0] = "H";
+	 mem[1]  = "e";
+	 mem[2]  = "l";
+	 mem[3]  = "l";
+	 mem[4]  = "o";
+	 mem[5]  = " ";
+	 mem[6]  = "W";
+	 mem[7]  = "o";
+	 mem[8]  = "r";
+	 mem[9]  = "l";
+	 mem[10] = "d";
+	 mem[11] = "!";
+	 mem[12] = " ";
+	 mem[13] = "*";
+	 mem[14] = "#";
+	 mem[15] = "^";
+	mem2[0] = "L";
+	mem2[1] = "C";
+	mem2[2] = "D";
+	mem2[3] = "1";
+	mem2[4] = "2";
+	mem2[5] = "8";
+	mem2[6] = "x";
+	mem2[7] = "6";
+	mem2[8] = "4";
+	mem2[9] = " ";
+	mem2[10] = "s";
+	mem2[11] = "c";
+	mem2[12] = "r";
+	mem2[13] = "e";
+	mem2[14] = "e";
+	mem2[15] = "n";
+	mem3[0] = "L";
+	mem3[1] = "o";
+	mem3[2] = "r";
+	mem3[3] = "e";
+	mem3[4] = "m";
+	mem3[5] = " ";
+	mem3[6] = "i";
+	mem3[7] = "p";
+	mem3[8] = "s";
+	mem3[9] = "u";
+	mem3[10] = "m";
+	mem3[11] = " ";
+	mem3[12] = " ";
+	mem3[13] = " ";
+	mem3[14] = " ";
+	mem3[15] = " ";
+	mem4[0] = "d";
+	mem4[1] = "o";
+	mem4[2] = "l";
+	mem4[3] = "o";
+	mem4[4] = "r";
+	mem4[5] = " ";
+	mem4[6] = "s";
+	mem4[7] = "i";
+	mem4[8] = "t";
+	mem4[9] = " ";
+	mem4[10] = "a";
+	mem4[11] = "m";
+	mem4[12] = "e";
+	mem4[13] = "t";
+	mem4[14] = ".";
+	mem4[15] = " ";
+//	$readmemb("row3.txt", mem3);
+ end
+ 
 always @(posedge clk)         //da de shi zhong pinlv 
  begin 
   counter=counter+1; 
@@ -63,45 +142,56 @@ begin
     set0:   begin  rs<=0; dat<=8'h30; next<=set1; end 
     set1:   begin  rs<=0; dat<=8'h0c; next<=set2; end 
     set2:   begin  rs<=0; dat<=8'h6; next<=set3; end 
-    set3:   begin  rs<=0; dat<=8'h1; next<=dat0; end 
+    set3:   begin  rs<=0; dat<=8'h1; next<=dat0; mem_index <= 0; end 
+	 
+	 dat0: begin
+		rs <= 1;
+		dat <= mem[mem_index];
+		mem_index <= mem_index + 1;
+		if(mem_index == 15)
+			next <= set4;
+		else
+			next <= dat0;
+	end
 
-    dat0:   begin  rs<=1; dat<="L"; next<=dat1; end //ĎÔĘžľÚŇťĐĐ
-    dat1:   begin  rs<=1; dat<="y"; next<=dat2; end 
-    dat2:   begin  rs<=1; dat<="c"; next<=dat3; end 
-    dat3:   begin  rs<=1; dat<=" ";next<=dat4; end 
-    dat4:   begin  rs<=1; dat<="F"; next<=dat5; end 
-    dat5:   begin  rs<=1; dat<="r"; next<=dat6; end 
-    dat6:   begin  rs<=1; dat<="e"; next<=dat7; end 
-    dat7:   begin  rs<=1; dat<="e";next<=dat8; end 
-    dat8:   begin  rs<=1; dat<=" "; next<=dat9; end 
-    dat9:   begin  rs<=1; dat<="E";next<= dat10 ; end 
-    dat10:   begin  rs<=1; dat<="D"; next<=dat11; end 
-    dat11:   begin  rs<=1; dat<="A"; next<=set4; end 
+    set4:   begin  rs<=0; dat<=8'h90; next<=dat1; mem_index <= 0; end 
+	 
+	 dat1: begin
+		rs <= 1;
+		dat <= mem2[mem_index];
+		mem_index <= mem_index + 1;
+		if(mem_index == 15)
+			next <= set5;
+		else
+			next <= dat1;
+	 end
 
-    set4:   begin  rs<=0; dat<=8'h90; next<=dat12; end //ĎÔĘžľÚśţĐĐ
 
-    dat12:   begin  rs<=1; dat<="N"; next<=dat13; end 
-    dat13:   begin  rs<=1; dat<="I";next<=dat14; end 
-    dat14:   begin  rs<=1; dat<="O"; next<=dat15; end 
-    dat15:   begin  rs<=1; dat<="S"; next<=dat16; end 
-    dat16:   begin  rs<=1; dat<=" "; next<=dat17; end 
-    dat17:   begin  rs<=1; dat<="I"; next<=dat18; end 
-    dat18:   begin  rs<=1; dat<="I"; next<=set5; end 
+    set5:   begin  rs<=0; dat<=8'h88; next<=dat2; mem_index <= 0; end //ĎÔĘžľÚČýĐĐ
+	 
+	 dat2: begin
+		rs <= 1;
+		dat <= mem3[mem_index];
+		mem_index <= mem_index + 1;
+		if(mem_index == 15)
+			next <= set6;
+		else
+			next <= dat2;
+	 end
 
-    set5:   begin  rs<=0; dat<=8'h88; next<=dat19; end //ĎÔĘžľÚČýĐĐ
+    set6:   begin  rs<=0; dat<=8'h98; next<=dat3; mem_index <= 0; end //ĎÔĘžľÚËÄĐĐ
+	 
+	 dat3: begin
+		rs <= 1;
+		dat <= mem4[mem_index];
+		mem_index <= mem_index + 1;
+		if(mem_index == 15)
+			next <= nul;
+		else
+			next <= dat3;
+	 end
 
-    dat19:   begin  rs<=1; dat<="S"; next<=dat20; end 
-    dat20:   begin  rs<=1; dat<="O"; next<=dat21; end 
-    dat21:   begin  rs<=1; dat<="P"; next<=dat22; end 
-    dat22:   begin  rs<=1; dat<="C"; next<=set6 ; end 
-
-    set6:   begin  rs<=0; dat<=8'h98; next<=dat23; end //ĎÔĘžľÚËÄĐĐ
-
-    dat23:   begin  rs<=1; dat<="F"; next<=dat24; end 
-    dat24:   begin  rs<=1; dat<="P"; next<=dat25; end 
-    dat25:   begin  rs<=1; dat<="G"; next<=dat26; end 
-    dat26:   begin  rs<=1; dat<="A"; next<=nul;   end 
-
+	 //reset?
      nul:   begin rs<=0;  dat<=8'h00;                    // °ŃŇşž§ľÄE ˝Ĺ Ŕ­¸ß 
               if(cnt!=2'h2)  
                   begin  

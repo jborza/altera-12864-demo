@@ -19,8 +19,6 @@ input clk;
  reg [7:0] mem3 [0:15];
  reg [3:0] mem_index;
  
-
- 
  
  parameter  set0=6'h0; 
  parameter  set1=6'h1; 
@@ -36,6 +34,19 @@ input clk;
  parameter  dat3=6'hA;    
   
  parameter  nul=6'hF1; 
+ 
+ task write_row;
+	//input [7:0] mem[0:15];
+	input [5:0] next_state;
+	begin
+		rs <= 1;
+		dat <= mem0[mem_index];
+		mem_index <= mem_index + 1;
+		if(mem_index == 15) begin
+			next <= next_state;
+		end
+	end
+ endtask
  
  initial begin;
 	$readmemb("ram0.txt", mem0);
@@ -65,8 +76,6 @@ begin
 		mem_index <= mem_index + 1;
 		if(mem_index == 15)
 			next <= set4;
-		else
-			next <= dat0;
 	end
 
     set4:   begin  rs<=0; dat<=8'h90; next<=dat1; mem_index <= 0; end 
@@ -77,8 +86,6 @@ begin
 		mem_index <= mem_index + 1;
 		if(mem_index == 15)
 			next <= set5;
-		else
-			next <= dat1;
 	 end
 
 
@@ -90,8 +97,6 @@ begin
 		mem_index <= mem_index + 1;
 		if(mem_index == 15)
 			next <= set6;
-		else
-			next <= dat2;
 	 end
 
     set6:   begin  rs<=0; dat<=8'h98; next<=dat3; mem_index <= 0; end //ĎÔĘžľÚËÄĐĐ
@@ -102,8 +107,6 @@ begin
 		mem_index <= mem_index + 1;
 		if(mem_index == 15)
 			next <= nul;
-		else
-			next <= dat3;
 	 end
 
 	 //reset?

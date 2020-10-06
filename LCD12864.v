@@ -32,10 +32,10 @@ input clk;
   
  parameter  nul=6'hF1; 
  
- parameter line0 = 8'h80';
- parameter line1 = 8'h90';
- parameter line2 = 8'h88';
- parameter line3 = 8'h98';
+ parameter line0=8'h80;
+ parameter line1=8'h90;
+ parameter line2=8'h88;
+ parameter line3=8'h98;
  
  task write_row;
 	input [2:0] mem_row;

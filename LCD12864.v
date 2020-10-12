@@ -1,5 +1,3 @@
-//ąžĘľŃéĘÇÓĂLCD12864ĎÔĘžÓ˘ÎÄĄŁŁ¨LCD´ř×ÖżâŁŠ
-
 module LCD12864 (clk, rs, rw, en,dat);  
 input clk;  
  output [7:0] dat; 
@@ -30,12 +28,19 @@ input clk;
  parameter  row2=6'h9; 
  parameter  row3=6'hA;    
   
- parameter  nul=6'hF1; 
+ parameter  loop=6'h3F; 
  
  parameter line0=8'h80;
  parameter line1=8'h90;
  parameter line2=8'h88;
  parameter line3=8'h98;
+ 
+ parameter SET_8BIT_BASIC_INSTR = 8'b00110000;
+ parameter SET_DISP_ON_CURSOR_OFF_BLINK_OFF = 8'b00001100;
+ parameter SET_CURSOR_POS = 8'b00000110;
+ parameter CLEAR = 8'h1;
+ parameter STANDBY = 8'b00000000;
+ parameter HOME = 8'b00000010;
  
  task write_row;
 	input [2:0] mem_row;
@@ -48,6 +53,17 @@ input clk;
 		if(mem_index == 15) begin
 			next <= next_state;
 		end
+	end
+ endtask
+ 
+  task command;
+	input [7:0] data;
+	input [5:0] next_state;
+	
+	begin
+		rs <= 0;
+		dat <= data;
+		next <= next_state;
 	end
  endtask
  
@@ -65,44 +81,38 @@ always @(posedge clkr)
 begin 
  current=next; 
   case(current) 
-    set0:   begin  rs<=0; dat<=8'h30; next<=set1; end //00110000 - set 8-bit interface, basic instruction set
-    set1:   begin  rs<=0; dat<=8'h0c; next<=set2; end //00001100 - display on, cursor off, blink off
-    set2:   begin  rs<=0; dat<=8'h6; next<=set3; end  //00000110 - set cursor position and display shift?
-    set3:   begin  rs<=0; dat<=8'h1; next<=row0; mem_index <= 0; end  //CLEAR
+    set0: begin command(SET_8BIT_BASIC_INSTR, set1); end
+    set1: begin command(SET_DISP_ON_CURSOR_OFF_BLINK_OFF, set2); end  
+    set2: begin command(SET_CURSOR_POS, set3); end  
+    set3: begin command(SET_8BIT_BASIC_INSTR, row0); mem_index <= 0; end
 	 
 	 row0: begin
 		write_row(0, set4);
 	 end
 
-    set4:   begin  rs<=0; dat<=line1; next<=row1; mem_index <= 0; end 
+    set4:   begin command(line1, row1); mem_index <= 0; end 
 	 
 	 row1: begin
 		write_row(1, set5);
 	 end
 
 
-    set5:   begin  rs<=0; dat<=line2; next<=row2; mem_index <= 0; end 
+    set5:   begin command(line2, row2); mem_index <= 0; end 
 	 
 	 row2: begin
 		write_row(2, set6);
 	 end
 
-    set6:   begin  rs<=0; dat<=line3; next<=row3; mem_index <= 0; end
+    set6:   begin command(line3, row3); mem_index <= 0; end
 	 
 	 row3: begin
-		write_row(3, nul);
+		write_row(3, loop);
 	 end
+	 
+	 loop: begin command(HOME, set0);
+			mem[63] = mem[63]+1;
+			mem[0] = mem[0]-1; end
 
-	 //reset?
-     nul:   begin rs<=0;  dat<=8'h00;                    // °ŃŇşž§ľÄE ˝Ĺ Ŕ­¸ß 
-              if(cnt!=2'h2)  
-                  begin  
-                       e<=0;next<=set0;cnt<=cnt+1;  
-                  end  
-                   else  
-                     begin next<=nul; e<=1; 
-                    end    
-              end 
    default:   next=set0; 
     endcase 
  end 

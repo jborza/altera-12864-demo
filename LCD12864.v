@@ -7,30 +7,28 @@ module LCD12864 (clk, rs, rw, en, dat, address_out, data_in);
  output reg [5:0] address_out; //goes to the RAM
  input [7:0] data_in;      //comes from the RAM
  
- //tri en; 
  reg [7:0] dat; 
  reg rs;   
- //reg  [10:0] counter;  //TODO set to 10:0
- reg [5:0] current,next; //TODO smaller bits for states
+ reg [3:0] current,next;
  wire clk_display; 
 
  reg [3:0] x;
  
  // state machine states
- localparam  set0=6'h0; 
- localparam  set1=6'h1; 
- localparam  set2=6'h2; 
- localparam  set3=6'h3; 
- localparam  move_to_row1=6'h4; 
- localparam  move_to_row2=6'h5;
- localparam  move_to_row3=6'h6;  
+localparam  set0=4'h0; 
+ localparam  set1=4'h1; 
+ localparam  set2=4'h2; 
+ localparam  set3=4'h3; 
+ localparam  move_to_row1=4'h4; 
+ localparam  move_to_row2=4'h5;
+ localparam  move_to_row3=4'h6;  
 
- localparam  row0=6'h7; 
- localparam  row1=6'h8; 
- localparam  row2=6'h9; 
- localparam  row3=6'hA;    
+ localparam  row0=4'h7; 
+ localparam  row1=4'h8; 
+ localparam  row2=4'h9; 
+ localparam  row3=4'hA;    
   
- localparam  loop=6'h3F; 
+ localparam  loop=4'hF; 
  // end of state machine states
  
  // line offsets
@@ -64,7 +62,7 @@ module LCD12864 (clk, rs, rw, en, dat, address_out, data_in);
  
  task command;
 	input [7:0] data;
-	input [5:0] next_state;
+	input [3:0] next_state;
 	
 	begin
 		rs <= 0;

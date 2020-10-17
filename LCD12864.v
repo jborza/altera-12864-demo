@@ -1,49 +1,51 @@
 //let's have a module that displays data off 64-byte RAM
-module LCD12864 (clk, rs, rw, en,dat);  
-input clk;  
+// connected to a [7:0] ram[63:0]
+module LCD12864 (clk, rs, rw, en, dat, address_out, data_in);  
+ input clk;  
+ output rs,rw,en;
  output [7:0] dat; 
- output  rs,rw,en; 
+ output reg [5:0] address_out; //goes to the RAM
+ input [7:0] data_in;      //comes from the RAM
+ 
  //tri en; 
- reg e; 
  reg [7:0] dat; 
  reg rs;   
- reg  [14:0] counter;  //TODO set to 10:0
- reg [5:0] current,next; 
- reg clk_display; 
+ //reg  [10:0] counter;  //TODO set to 10:0
+ reg [5:0] current,next; //TODO smaller bits for states
+ wire clk_display; 
 
- reg [7:0] mem [0:63];
  reg [3:0] x;
  
  // state machine states
- parameter  set0=6'h0; 
- parameter  set1=6'h1; 
- parameter  set2=6'h2; 
- parameter  set3=6'h3; 
- parameter  move_to_row1=6'h4; 
- parameter  move_to_row2=6'h5;
- parameter  move_to_row3=6'h6;  
+ localparam  set0=6'h0; 
+ localparam  set1=6'h1; 
+ localparam  set2=6'h2; 
+ localparam  set3=6'h3; 
+ localparam  move_to_row1=6'h4; 
+ localparam  move_to_row2=6'h5;
+ localparam  move_to_row3=6'h6;  
 
- parameter  row0=6'h7; 
- parameter  row1=6'h8; 
- parameter  row2=6'h9; 
- parameter  row3=6'hA;    
+ localparam  row0=6'h7; 
+ localparam  row1=6'h8; 
+ localparam  row2=6'h9; 
+ localparam  row3=6'hA;    
   
- parameter  loop=6'h3F; 
+ localparam  loop=6'h3F; 
  // end of state machine states
  
  // line offsets
- parameter line0=8'h80;
- parameter line1=8'h90;
- parameter line2=8'h88;
- parameter line3=8'h98;
+ localparam line0=8'h80;
+ localparam line1=8'h90;
+ localparam line2=8'h88;
+ localparam line3=8'h98;
  
  // ST7920 display instructions
- parameter SET_8BIT_BASIC_INSTR = 8'b00110000;
- parameter SET_DISP_ON_CURSOR_OFF_BLINK_OFF = 8'b00001100;
- parameter SET_CURSOR_POS = 8'b00000110;
- parameter CLEAR = 8'h1;
- parameter STANDBY = 8'b00000000;
- parameter HOME = 8'b00000010;
+ localparam SET_8BIT_BASIC_INSTR = 8'b00110000;
+ localparam SET_DISP_ON_CURSOR_OFF_BLINK_OFF = 8'b00001100;
+ localparam SET_CURSOR_POS = 8'b00000110;
+ localparam CLEAR = 8'h1;
+ localparam STANDBY = 8'b00000000;
+ localparam HOME = 8'b00000010;
  
  task write_characters_row;
 	input [2:0] y;
@@ -51,15 +53,16 @@ input clk;
 
 	begin
 		rs <= 1;
-		dat <= mem[y*16 + x];
-		x <= x + 1;
+		dat <= data_in;//
+		address_out <= y*16 + x;
+		x <= x + 4'h1;
 		if(x == 15) begin
 			next <= next_state;
 		end
 	end
  endtask
  
-  task command;
+ task command;
 	input [7:0] data;
 	input [5:0] next_state;
 	
@@ -70,19 +73,22 @@ input clk;
 	end
  endtask
  
- initial begin;
-	$readmemb("ram.txt", mem);
- end
- 
-always @(posedge clk)        
- begin 
-  //we want to hit 72 us per display instruction. 72 us 
-  counter=counter+1; 
-  //clk_display inverted on every overflow of 11-bit counter -> is toggled every 50,000,000 / (2^11*2) = 12 khz -> 82 us
-  if(counter==12'h000f) begin										
-		clk_display=~clk_display; 
-	end
-end 
+  lcd_clock_divider divider(
+	.clk(clk),
+	.clk_div(clk_display)
+ );
+ //TODO extract module 
+//always @(posedge clk)        
+// begin 
+//  //we want to hit 72 us per display instruction. 72 us 
+//  counter=counter+1; 
+//  //clk_display inverted on every overflow of 11-bit counter -> is toggled every 50,000,000 / (2^11*2) = 12 khz -> 82 us
+//  if(counter==(2048-1)) begin										
+//		clk_display=~clk_display; 
+//	end
+//	
+//end 
+
 always @(posedge clk_display) 
 begin 
  current=next; 
@@ -116,14 +122,10 @@ begin
 	 end
 	 
 	 loop: begin command(HOME, set0);
-			mem[0] <= mem[0]-1; //TODO remove - a dynamic element until the display buffer is extracted
-			mem[20] <= mem[20]-1; //TODO remove - a dynamic element until the display buffer is extracted
-			mem[40] <= mem[40]-1; //TODO remove - a dynamic element until the display buffer is extracted
-			mem[60] <= mem[60]-1; //TODO remove - a dynamic element until the display buffer is extracted
 	  end
    default:   next=set0; 
     endcase 
  end 
-assign en=clk_display|e; 
+assign en=clk_display; 
 assign rw=0; 
 endmodule  

@@ -22,10 +22,11 @@ reg [7:0] char0;
 reg [15:0] bcd; //hopefully initialized to zero
 wire [15:0] bcd_out;
 
-reg [1:0] ram_update_address;
+reg [2:0] ram_update_address;
 
 localparam PERIOD_100MS = 5000000;
 localparam ASCII_ZERO = 8'h30;
+localparam ASCII_DOT = 8'h2E;
 reg [23:0] stopwatch_counter;
 
 reg bcd_incrementer_enable;
@@ -84,28 +85,17 @@ reg bcd_incrementer_enable;
 	we <= 1;
 	ram_update_address <= ram_update_address + 1;
 	write_address <= ram_update_address;
-	case(write_address)
-		0: ram_in = bcd[3:0] + ASCII_ZERO;
-		1: ram_in = bcd[7:4] + ASCII_ZERO;
-		2: ram_in = bcd[11:8] + ASCII_ZERO;
-		3: ram_in = bcd[15:12] + ASCII_ZERO;		
+	case((ram_update_address))
+		0: ram_in <= bcd[15:12] + ASCII_ZERO;
+		1: ram_in <= bcd[11:8] + ASCII_ZERO;
+		2: ram_in <= bcd[7:4] + ASCII_ZERO;
+		3: ram_in <= ASCII_DOT;
+		4: ram_in <= bcd[3:0] + ASCII_ZERO;
+		5: we <= 0;		
+		6: we <= 0;
+		7: we <= 0;
 	endcase
  end
- 
-// always @(posedge clk_display) 
-// begin 
-//	//buffer[0] <= buffer[0]-1;
-//	we <= 1;
-////	if(char0[0] == 1) begin
-////		write_address <= 0;
-////	end else begin
-////		write_address <= 1;
-////	end
-////	write_address <= char0 / 4;
-//	write_address <= 48;
-//	ram_in <= char0;
-//	char0 <= char0 + 8'h1;
-// end
  
  assign led = clk_display;
  

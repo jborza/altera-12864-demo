@@ -4,8 +4,8 @@
 module bcd_incrementer(
 	input wire[3:0] bcd_in,
 	input wire enable,
-	output reg[3:0] bcd_out,
-	output reg carry
+	output wire[3:0] bcd_out,
+	output wire carry
 );
 
 localparam nine = 4'b1001;

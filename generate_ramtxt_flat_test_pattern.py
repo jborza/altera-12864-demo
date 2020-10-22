@@ -6,10 +6,10 @@ def str2bin(text):
         print(f'{char:08b}')
 
 txt = []
-txt.append("0123456789ABCDEF")
-txt.append("GHJKLMNOPQRSTUVW")
-txt.append("XYZ!@#$%^&*()-=_")
-txt.append("aAbBcDdDeEfFgGhH")
+txt.append("000.00 STOPWATCH")
+txt.append("   Incremented  ")
+txt.append("  EVERY *10* MS ")
+txt.append("~Verilog is fun~")
 
 with open(f'ram.txt', 'w') as f:
     sys.stdout = f

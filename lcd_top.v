@@ -6,22 +6,18 @@ module lcd_top (clk, rs, rw, en, dat, led);
  output wire rs,rw,en; 
  output led;
  
- //wire [7:0] dat; 
- //wire rs;   
- 
- //tri en; 
- //wire e; 
- reg  [23:0] counter;  //TODO set to 10:0
+ reg  [20:0] counter;  //TODO set to 10:0
  reg [5:0] current,next; 
  reg clk_display; 
  
- reg we;
+ reg we; //ram write enable
  reg [5:0] write_address;
  wire [5:0] read_address;
- reg [7:0] ram_in;//, ram_out;
+ reg [7:0] ram_in;
  wire [7:0] ram_out;
  
-// reg [7:0] buffer [0:63];
+
+reg [7:0] char0;
   
   ram ram(
    .clk(clk),
@@ -55,7 +51,15 @@ module lcd_top (clk, rs, rw, en, dat, led);
  begin 
 	//buffer[0] <= buffer[0]-1;
 	we <= 1;
+//	if(char0[0] == 1) begin
+//		write_address <= 0;
+//	end else begin
+//		write_address <= 1;
+//	end
+//	write_address <= char0 / 4;
 	write_address <= 0;
+	ram_in <= char0;
+	char0 <= char0 + 8'h1;
  end
  
  assign led = clk_display;

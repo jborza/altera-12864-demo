@@ -12,10 +12,11 @@ module LCD12864 (clk, rs, rw, en, dat, address_out, data_in);
  reg [3:0] current,next;
  wire clk_display; 
 
+ //x coordinate on the current line (column)
  reg [3:0] x;
  
  // state machine states
-localparam  set0=4'h0; 
+ localparam  set0=4'h0; 
  localparam  set1=4'h1; 
  localparam  set2=4'h2; 
  localparam  set3=4'h3; 
@@ -52,7 +53,7 @@ localparam  set0=4'h0;
 	begin
 		rs <= 1;
 		dat <= data_in;//
-		address_out <= y*16 + x;
+		address_out <= y*16 + x + 1;
 		x <= x + 4'h1;
 		if(x == 15) begin
 			next <= next_state;
@@ -75,17 +76,7 @@ localparam  set0=4'h0;
 	.clk(clk),
 	.clk_div(clk_display)
  );
- //TODO extract module 
-//always @(posedge clk)        
-// begin 
-//  //we want to hit 72 us per display instruction. 72 us 
-//  counter=counter+1; 
-//  //clk_display inverted on every overflow of 11-bit counter -> is toggled every 50,000,000 / (2^11*2) = 12 khz -> 82 us
-//  if(counter==(2048-1)) begin										
-//		clk_display=~clk_display; 
-//	end
-//	
-//end 
+
 
 always @(posedge clk_display) 
 begin 
@@ -95,25 +86,25 @@ begin
     set0: begin command(SET_8BIT_BASIC_INSTR, set1); end
     set1: begin command(SET_DISP_ON_CURSOR_OFF_BLINK_OFF, set2); end  
     set2: begin command(SET_CURSOR_POS, set3); end  
-    set3: begin command(SET_8BIT_BASIC_INSTR, row0); x <= 0; end
+    set3: begin command(SET_8BIT_BASIC_INSTR, row0); x <= 0; address_out <= 0; end
 	 
 	 row0: begin
 		write_characters_row(0, move_to_row1);
 	 end
 
-    move_to_row1:   begin command(line1, row1); x <= 0; end 
+    move_to_row1:   begin command(line1, row1); x <= 0; address_out <= 16; end 
 	 
 	 row1: begin
 		write_characters_row(1, move_to_row2);
 	 end
 
-    move_to_row2:   begin command(line2, row2); x <= 0; end 
+    move_to_row2:   begin command(line2, row2); x <= 0; address_out <= 32; end 
 	 
 	 row2: begin
 		write_characters_row(2, move_to_row3);
 	 end
 
-    move_to_row3:   begin command(line3, row3); x <= 0; end
+    move_to_row3:   begin command(line3, row3); x <= 0; address_out <= 48; end
 	 
 	 row3: begin
 		write_characters_row(3, loop);

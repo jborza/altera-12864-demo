@@ -1,12 +1,14 @@
-// sample top module
+// stopwatch top module
 // connects RAM, LCD driver and modifies the memory
-module lcd_top (clk, rs, rw, en, dat, led);  
+module lcd_top (clk, rs, rw, en, dat, led, rst);  
+
+//inputs and outputs
  input clk;  
  output wire [7:0] dat; 
  output wire rs,rw,en; 
- output reg led;
- 
- reg  [20:0] counter;  //TODO set to 10:0
+ output led;
+ input rst;
+
  reg [5:0] current,next; 
  reg clk_display; 
  
@@ -51,33 +53,27 @@ reg bcd_incrementer_enable;
 		.data_in(ram_out)
 	);
 	
-	bcd_incrementer_4digit incrementer(
+	bcd_incrementer_5digit incrementer(
 		.bcd_in(bcd), 
 		.bcd_out(bcd_out),
 		.enable(bcd_incrementer_enable)
 	);
-
-// always @(posedge clk)        
-// begin 
-//  counter<=counter+16'h1; 
-//  //clk_display inverted on every overflow of 11-bit counter -> is toggled every 50,000,000 / (2^11*2) = 12 khz -> 82 us
-//  if(counter==16'h000f) begin										
-//		clk_display=~clk_display; 
-//	end
-// end
-// 
+ 
  //hundredths of second ticker -> 50,000,000 / 500,000
  always @(posedge clk)
  begin
-	stopwatch_counter <= stopwatch_counter + 1;
-	bcd_incrementer_enable <= 0;
-	if(stopwatch_counter == PERIOD_10MS)
-	begin
-		stopwatch_counter <= 0;
-		bcd_incrementer_enable <= 1;
+	if(!rst) //inverted reset on the push button
+		bcd <= 0;
+	else begin
+		stopwatch_counter <= stopwatch_counter + 1;
+		bcd_incrementer_enable <= 0;
+		if(stopwatch_counter == PERIOD_10MS)
+		begin
+			stopwatch_counter <= 0;
+			bcd_incrementer_enable <= 1;
+		end
+		bcd <= bcd_out;
 	end
-	bcd <= bcd_out;
-	led = ~led;
  end
  
  //memory updater process, always writing out BCD digits
@@ -98,6 +94,9 @@ reg bcd_incrementer_enable;
 		7: we <= 0;
 	endcase
  end
+ 
+ // led showing reset signal
+ assign led = !rst;
  
  
 endmodule  

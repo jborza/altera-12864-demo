@@ -8,7 +8,7 @@ input wire [19:0] bcd_in;
 output wire [19:0] bcd_out;
 input wire enable;
 
-wire c2, c1, c0;
+wire c3, c2, c1, c0;
 wire temp;
 
 bcd_incrementer bcd_digit4(
@@ -33,7 +33,7 @@ bcd_incrementer bcd_digit1(
 	.bcd_in(bcd_in[15:12]),
 	.enable(c1), 
 	.bcd_out(bcd_out[15:12]), 
-	.carry(temp));
+	.carry(c0));
 		
 bcd_incrementer bcd_digit0(
 	.bcd_in(bcd_in[19:16]),

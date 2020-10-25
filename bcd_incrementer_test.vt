@@ -18,8 +18,7 @@ task debug_print;
 		#10; $display("in = %b [%d], out = %b, carry = %b, expected = %b", bcd_in, bcd_in, bcd_out, carry, expected);
 		if(expected != bcd_out || carry != carry_expected) 
 		begin 
-			$display("^^^ out vs expected is different!");
-//			$finish(1); 
+			$display("^^^ value vs expected is different!");
 		end
 	end
 endtask
